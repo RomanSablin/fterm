@@ -1,2 +1,4 @@
 # fterm
-serial terminal with message filtering function
+serial terminal for esp32 logs with message filtering function
+
+![](docs/fterm.png)
