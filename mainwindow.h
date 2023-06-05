@@ -1,7 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QAction>
 #include <QMainWindow>
+#include <QPointer>
 #include <QSerialPort>
 
 QT_BEGIN_NAMESPACE
@@ -29,7 +31,10 @@ private:
 
     void ParsePacket();
 
+    void UpdateAvaliablePorts();
+
 private slots:
+    void SettingsChecked();
     void OnSerialOpen();
     void OnSerialClose();
     void OnSerialReady();
@@ -37,6 +42,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    QPointer<QAction> mBtnFtdi;
     QSerialPort *mSerialPort;
     int mBaudrate;
     bool mIsGuiPortOpen;

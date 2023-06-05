@@ -9,6 +9,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , mBtnFtdi(nullptr)
     , mSerialPort(nullptr)
     , mBaudrate(115200)
     , mIsGuiPortOpen(false)
@@ -17,19 +18,13 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle( QCoreApplication::applicationName() );
     setWindowIcon(QIcon(":/images/fterm.png"));
 
-    const auto infos = QSerialPortInfo::availablePorts();
-    for (const QSerialPortInfo &info : infos)
-    {
-        if(CParameters::IsUSBFilterEnabled)
-        {
-            if(info.vendorIdentifier() == CParameters::FTDI_VENDOR_ID)
-                ui->cbPort->addItem(info.portName());
-        }
-        else
-        {
-            ui->cbPort->addItem(info.portName());
-        }
-    }
+    mBtnFtdi = new QAction("Enable Ftdi", this);
+    mBtnFtdi->setCheckable(true);
+    mBtnFtdi->setChecked(true);
+    connect(mBtnFtdi, SIGNAL(triggered()), this, SLOT(SettingsChecked()));
+    ui->menusettings->addAction(mBtnFtdi);
+
+    UpdateAvaliablePorts();
     static const int bauds[] = {
         9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600
     };
@@ -64,6 +59,12 @@ MainWindow::~MainWindow()
 {
     OnSerialClose();
     delete ui;
+}
+
+void MainWindow::SettingsChecked()
+{
+    UpdateAvaliablePorts();
+    Ui(true);
 }
 
 void MainWindow::OnSerialOpen()
@@ -297,5 +298,28 @@ void MainWindow::ParsePacket()
         mVt100Packet.append(mPacket.mid(start, stop - start + 1));
         LogD(mVt100Packet);
         SetLogColor (CParameters::GetColor (startColor));
+    }
+}
+
+void MainWindow::UpdateAvaliablePorts()
+{
+    ui->cbPort->clear();
+    const auto infos = QSerialPortInfo::availablePorts();
+    for (const QSerialPortInfo &info : infos)
+    {
+        if(CParameters::IsUSBFilterEnabled)
+        {
+            if (mBtnFtdi->isChecked())
+            {
+                if(info.vendorIdentifier() == CParameters::FTDI_VENDOR_ID)
+                    ui->cbPort->addItem(info.portName());
+            }
+            else
+                ui->cbPort->addItem(info.portName());
+        }
+        else
+        {
+            ui->cbPort->addItem(info.portName());
+        }
     }
 }
